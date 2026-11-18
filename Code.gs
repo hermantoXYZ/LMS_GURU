@@ -1,122 +1,217 @@
-/** LMS backend starter matching the requested Sheets schema.
- * Set SPREADSHEET_ID, then run setupSheets().
+/**
+ * BACKEND LMS SEKOLAH - GOOGLE APPS SCRIPT & GOOGLE SHEETS
+ * Tabel: users, master_kelas_jurusan, materi, soal, jawaban_siswa, sessions
  */
-const SPREADSHEET_ID = "REPLACE_WITH_SPREADSHEET_ID";
-const SHEETS = {
- users:["id_user","username","password","nama_lengkap","role","kelas","jurusan","created_at"],
- master_kelas_jurusan:["id_master","tipe","nama"],
- materi:["id_materi","id_guru","nama_guru","mapel","kelas","jurusan","judul_materi","deskripsi","youtube_url","created_at"],
- soal:["id_soal","id_materi","nomor_urut","tipe_soal","pertanyaan","opsi_a","opsi_b","opsi_c","opsi_d","opsi_e","kunci_pg","bobot_poin"],
- jawaban_siswa:["id_submit","id_materi","id_siswa","nama_siswa","kelas","jurusan","detail_jawaban","skor_pg","skor_esai","total_nilai","status_koreksi","catatan_guru","waktu_submit"],
- sessions:["token","id_user","role","expired_at"]
-};
-function setupSheets(){
- const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
- Object.entries(SHEETS).forEach(([name,headers])=>{
-  let sh=ss.getSheetByName(name);
-  if(!sh)sh=ss.insertSheet(name);
-  if(sh.getLastRow()===0)sh.appendRow(headers);
-  else if(sh.getLastRow()===1 && sh.getLastColumn()===1 && sh.getRange(1,1).getValue()==="")sh.getRange(1,1,1,headers.length).setValues([headers]);
- });
- return "Sheets LMS berhasil disiapkan.";
+
+function setupDatabase() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const schemas = {
+    users: ['id_user', 'username', 'password', 'nama_lengkap', 'role', 'kelas', 'jurusan', 'created_at'],
+    master_kelas_jurusan: ['id_master', 'tipe', 'nama'],
+    materi: ['id_materi', 'id_guru', 'nama_guru', 'mapel', 'kelas', 'jurusan', 'judul_materi', 'deskripsi', 'youtube_url', 'created_at'],
+    soal: ['id_soal', 'id_materi', 'nomor_urut', 'tipe_soal', 'pertanyaan', 'opsi_a', 'opsi_b', 'opsi_c', 'opsi_d', 'opsi_e', 'kunci_pg', 'bobot_poin'],
+    jawaban_siswa: ['id_submit', 'id_materi', 'id_siswa', 'nama_siswa', 'kelas', 'jurusan', 'detail_jawaban', 'skor_pg', 'skor_esai', 'total_nilai', 'status_koreksi', 'catatan_guru', 'waktu_submit'],
+    sessions: ['token', 'id_user', 'role', 'expired_at']
+  };
+
+  Object.keys(schemas).forEach(sheetName => {
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+    }
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(schemas[sheetName]);
+      sheet.getRange(1, 1, 1, schemas[sheetName].length).setFontWeight('bold').setBackground('#e2e8f0');
+      sheet.setFrozenRows(1);
+    }
+  });
+
+  // Seed Data Awal jika tabel users masih kosong
+  const userSheet = ss.getSheetByName('users');
+  if (userSheet.getLastRow() === 1) {
+    const now = new Date().toISOString();
+    userSheet.appendRow(['USR-001', 'admin', 'admin123', 'Administrator Sekolah', 'admin', '-', '-', now]);
+    userSheet.appendRow(['USR-002', '19850412', 'guru123', 'Budi Santoso, S.Kom.', 'guru', '-', '-', now]);
+    userSheet.appendRow(['USR-003', '2026001', 'siswa123', 'Siti Aminah', 'siswa', 'XII', 'RPL', now]);
+  }
+
+  const masterSheet = ss.getSheetByName('master_kelas_jurusan');
+  if (masterSheet.getLastRow() === 1) {
+    masterSheet.appendRow(['MST-001', 'kelas', 'X']);
+    masterSheet.appendRow(['MST-002', 'kelas', 'XI']);
+    masterSheet.appendRow(['MST-003', 'kelas', 'XII']);
+    masterSheet.appendRow(['MST-004', 'jurusan', 'RPL']);
+    masterSheet.appendRow(['MST-005', 'jurusan', 'TKJ']);
+    masterSheet.appendRow(['MST-006', 'jurusan', 'IPA']);
+  }
 }
-function doPost(e){
- try{
-  const req=JSON.parse(e.postData.contents||"{}");
-  return json_(dispatch_(req));
- }catch(err){return json_({ok:false,message:String(err)});}
+
+function doGet(e) {
+  return handleRequest(e);
 }
-function dispatch_(req){
- if(req.action==="login")return login_(req);
- if(req.action==="logout")return logout_(req);
- // API endpoint scaffolding. Require session token for all protected actions.
- const session=validateSession_(req.token);
- if(!session)return {ok:false,message:"Session tidak valid atau telah berakhir."};
- if(req.action==="get_dashboard")return dashboard_(session);
- if(req.action==="get_master")return {ok:true,data:readSheet_("master_kelas_jurusan")};
- if(req.action==="get_materi")return {ok:true,data:readSheet_("materi")};
- if(req.action==="get_soal")return getSoal_(req,session);
- if(req.action==="create_materi")return createMateri_(req,session);
- if(req.action==="create_soal")return createSoal_(req,session);
- if(req.action==="submit_jawaban")return submitJawaban_(req,session);
- return {ok:false,message:"Action belum tersedia."};
+
+function doPost(e) {
+  return handleRequest(e);
 }
-function login_(req){
- const rows=readSheet_("users");
- const u=rows.find(x=>String(x.username)===String(req.username)&&String(x.password)===String(req.password));
- if(!u)return {ok:false,message:"Username atau password salah."};
- const token=Utilities.getUuid()+Utilities.getUuid();
- const expires=new Date(Date.now()+8*60*60*1000);
- sheet_("sessions").appendRow([token,u.id_user,u.role,expires]);
- return {ok:true,token,user:{id_user:u.id_user,username:u.username,nama_lengkap:u.nama_lengkap,role:u.role,kelas:u.kelas,jurusan:u.jurusan}};
+
+function handleRequest(e) {
+  const lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  try {
+    let payload = {};
+    if (e.postData && e.postData.contents) {
+      payload = JSON.parse(e.postData.contents);
+    } else if (e.parameter) {
+      payload = e.parameter;
+    }
+
+    const action = payload.action;
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // 1. LOGIN & BUAT SESSION TOKEN
+    if (action === 'login') {
+      const users = getSheetData(ss, 'users');
+      const user = users.find(u => String(u.username) === String(payload.username) && String(u.password) === String(payload.password));
+      if (!user) return jsonResponse({ status: 'error', message: 'Username/NIS/NIP atau kata sandi salah!' });
+
+      const token = Utilities.getUuid();
+      const expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 jam
+      ss.getSheetByName('sessions').appendRow([token, user.id_user, user.role, expiredAt]);
+
+      const safeUser = Object.assign({}, user);
+      delete safeUser.password;
+      return jsonResponse({ status: 'success', token: token, user: safeUser });
+    }
+
+    // VALIDASI TOKEN SESSION UNTUK ENDPOINT TERPROTEKSI
+    if (action !== 'login') {
+      const sessions = getSheetData(ss, 'sessions');
+      const validSession = sessions.find(s => s.token === payload.token && new Date(s.expired_at) > new Date());
+      if (!validSession) return jsonResponse({ status: 'error', message: 'Sesi tidak valid atau telah berakhir. Silakan login ulang.' });
+    }
+
+    // 2. AMBIL SEMUA DATA (SYNC)
+    if (action === 'getAllData') {
+      const users = getSheetData(ss, 'users').map(u => { delete u.password; return u; });
+      const master = getSheetData(ss, 'master_kelas_jurusan');
+      const materi = getSheetData(ss, 'materi');
+      const soal = getSheetData(ss, 'soal');
+      const jawaban = getSheetData(ss, 'jawaban_siswa');
+      return jsonResponse({ status: 'success', data: { users, master, materi, soal, jawaban } });
+    }
+
+    // 3. ADMIN: TAMBAH / HAPUS USER
+    if (action === 'addUser') {
+      const d = payload.data;
+      const id = 'USR-' + Date.now();
+      ss.getSheetByName('users').appendRow([id, d.username, d.password, d.nama_lengkap, d.role, d.kelas || '-', d.jurusan || '-', new Date().toISOString()]);
+      return jsonResponse({ status: 'success', id: id });
+    }
+    if (action === 'deleteUser') {
+      deleteRowById(ss, 'users', 'id_user', payload.id_user);
+      return jsonResponse({ status: 'success' });
+    }
+
+    // 4. ADMIN: TAMBAH / HAPUS MASTER KELAS & JURUSAN
+    if (action === 'addMaster') {
+      const d = payload.data;
+      const id = 'MST-' + Date.now();
+      ss.getSheetByName('master_kelas_jurusan').appendRow([id, d.tipe, d.nama]);
+      return jsonResponse({ status: 'success', id: id });
+    }
+    if (action === 'deleteMaster') {
+      deleteRowById(ss, 'master_kelas_jurusan', 'id_master', payload.id_master);
+      return jsonResponse({ status: 'success' });
+    }
+
+    // 5. GURU: TAMBAH / HAPUS MATERI
+    if (action === 'addMateri') {
+      const d = payload.data;
+      const id = 'MTR-' + Date.now();
+      ss.getSheetByName('materi').appendRow([id, d.id_guru, d.nama_guru, d.mapel, d.kelas, d.jurusan, d.judul_materi, d.deskripsi, d.youtube_url, new Date().toISOString()]);
+      return jsonResponse({ status: 'success', id: id });
+    }
+    if (action === 'deleteMateri') {
+      deleteRowById(ss, 'materi', 'id_materi', payload.id_materi);
+      return jsonResponse({ status: 'success' });
+    }
+
+    // 6. GURU: TAMBAH / HAPUS SOAL
+    if (action === 'addSoal') {
+      const d = payload.data;
+      const id = 'SOL-' + Date.now();
+      ss.getSheetByName('soal').appendRow([id, d.id_materi, d.nomor_urut, d.tipe_soal, d.pertanyaan, d.opsi_a, d.opsi_b, d.opsi_c, d.opsi_d, d.opsi_e, d.kunci_pg, d.bobot_poin]);
+      return jsonResponse({ status: 'success', id: id });
+    }
+    if (action === 'deleteSoal') {
+      deleteRowById(ss, 'soal', 'id_soal', payload.id_soal);
+      return jsonResponse({ status: 'success' });
+    }
+
+    // 7. SISWA: SUBMIT JAWABAN
+    if (action === 'submitJawaban') {
+      const d = payload.data;
+      const id = 'SUB-' + Date.now();
+      ss.getSheetByName('jawaban_siswa').appendRow([
+        id, d.id_materi, d.id_siswa, d.nama_siswa, d.kelas, d.jurusan,
+        JSON.stringify(d.detail_jawaban), d.skor_pg, d.skor_esai, d.total_nilai,
+        d.status_koreksi, d.catatan_guru || '', new Date().toISOString()
+      ]);
+      return jsonResponse({ status: 'success', id: id });
+    }
+
+    // 8. GURU: KOREKSI ESAI & UPDATE NILAI
+    if (action === 'koreksiJawaban') {
+      const d = payload.data;
+      const sheet = ss.getSheetByName('jawaban_siswa');
+      const rows = sheet.getDataRange().getValues();
+      const headers = rows[0];
+      const idCol = headers.indexOf('id_submit');
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][idCol]) === String(d.id_submit)) {
+          sheet.getRange(i + 1, headers.indexOf('skor_esai') + 1).setValue(d.skor_esai);
+          sheet.getRange(i + 1, headers.indexOf('total_nilai') + 1).setValue(d.total_nilai);
+          sheet.getRange(i + 1, headers.indexOf('status_koreksi') + 1).setValue('Sudah Dikoreksi');
+          sheet.getRange(i + 1, headers.indexOf('catatan_guru') + 1).setValue(d.catatan_guru);
+          break;
+        }
+      }
+      return jsonResponse({ status: 'success' });
+    }
+
+    return jsonResponse({ status: 'error', message: 'Action tidak dikenali' });
+  } catch (err) {
+    return jsonResponse({ status: 'error', message: err.toString() });
+  } finally {
+    lock.releaseLock();
+  }
 }
-function logout_(req){
- const sh=sheet_("sessions"),data=sh.getDataRange().getValues();
- for(let i=data.length-1;i>=1;i--)if(data[i][0]===req.token){sh.deleteRow(i+1);break;}
- return {ok:true};
+
+function getSheetData(ss, sheetName) {
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return [];
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length <= 1) return [];
+  const headers = rows[0];
+  return rows.slice(1).map(row => {
+    let obj = {};
+    headers.forEach((h, idx) => obj[h] = row[idx]);
+    return obj;
+  });
 }
-function validateSession_(token){
- if(!token)return null;
- const rows=readSheet_("sessions");
- const s=rows.find(x=>String(x.token)===String(token));
- if(!s||new Date(s.expired_at)<new Date())return null;
- return {id_user:s.id_user,role:s.role};
+
+function deleteRowById(ss, sheetName, idColName, idValue) {
+  const sheet = ss.getSheetByName(sheetName);
+  const rows = sheet.getDataRange().getValues();
+  const idCol = rows[0].indexOf(idColName);
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][idCol]) === String(idValue)) {
+      sheet.deleteRow(i + 1);
+      break;
+    }
+  }
 }
-function dashboard_(s){
- const users=readSheet_("users"),materials=readSheet_("materi");
- const isAdmin=s.role==="Admin";
- return {ok:true,data:{
-  users:isAdmin?users.length:undefined,
-  materials:materials.filter(m=>s.role==="Guru"?String(m.id_guru)===String(s.id_user):true).length,
-  kelas:readSheet_("master_kelas_jurusan").filter(x=>x.tipe==="Kelas").length
- }};
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
-function createMateri_(req,s){
- if(s.role!=="Guru"&&s.role!=="Admin")return {ok:false,message:"Akses ditolak."};
- const sh=sheet_("materi");
- const id=Utilities.getUuid();
- const u=readSheet_("users").find(x=>String(x.id_user)===String(s.id_user));
- const row={id_materi:id,id_guru:s.id_user,nama_guru:u?u.nama_lengkap:"",mapel:req.mapel||"",kelas:req.kelas||"",jurusan:req.jurusan||"",judul_materi:req.judul_materi||"",deskripsi:req.deskripsi||"",youtube_url:req.youtube_url||"",created_at:new Date()};
- appendObject_(sh,SHEETS.materi,row);
- return {ok:true,id_materi:id};
-}
-function createSoal_(req,s){
- if(s.role!=="Guru"&&s.role!=="Admin")return {ok:false,message:"Akses ditolak."};
- const material=readSheet_("materi").find(x=>String(x.id_materi)===String(req.id_materi));
- if(!material)return {ok:false,message:"Materi tidak ditemukan."};
- if(s.role==="Guru"&&String(material.id_guru)!==String(s.id_user))return {ok:false,message:"Anda bukan pemilik materi ini."};
- const row={id_soal:Utilities.getUuid(),id_materi:req.id_materi,nomor_urut:req.nomor_urut||1,tipe_soal:req.tipe_soal||"PG",pertanyaan:req.pertanyaan||"",opsi_a:req.opsi_a||"",opsi_b:req.opsi_b||"",opsi_c:req.opsi_c||"",opsi_d:req.opsi_d||"",opsi_e:req.opsi_e||"",kunci_pg:req.kunci_pg||"",bobot_poin:req.bobot_poin||1};
- appendObject_(sheet_("soal"),SHEETS.soal,row);
- return {ok:true};
-}
-function getSoal_(req,s){
- const material=readSheet_("materi").find(x=>String(x.id_materi)===String(req.id_materi));
- if(!material)return {ok:false,message:"Materi tidak ditemukan."};
- if(s.role==="Guru"&&String(material.id_guru)!==String(s.id_user))return {ok:false,message:"Akses ditolak."};
- const rows=readSheet_("soal").filter(x=>String(x.id_materi)===String(req.id_materi));
- // Hide answer key from student payload.
- if(s.role==="Siswa")rows.forEach(x=>delete x.kunci_pg);
- return {ok:true,data:rows};
-}
-function submitJawaban_(req,s){
- if(s.role!=="Siswa")return {ok:false,message:"Hanya siswa yang dapat mengirim jawaban."};
- const u=readSheet_("users").find(x=>String(x.id_user)===String(s.id_user));
- if(!u)return {ok:false,message:"Data siswa tidak ditemukan."};
- const row={id_submit:Utilities.getUuid(),id_materi:req.id_materi,id_siswa:s.id_user,nama_siswa:u.nama_lengkap,kelas:u.kelas,jurusan:u.jurusan,detail_jawaban:JSON.stringify(req.detail_jawaban||{}),skor_pg:0,skor_esai:0,total_nilai:0,status_koreksi:"Belum dikoreksi",catatan_guru:"",waktu_submit:new Date()};
- appendObject_(sheet_("jawaban_siswa"),SHEETS.jawaban_siswa,row);
- return {ok:true};
-}
-function readSheet_(name){
- const sh=sheet_(name),values=sh.getDataRange().getValues();
- if(values.length<2)return [];
- const headers=values[0];
- return values.slice(1).filter(r=>r.some(v=>v!=="")).map(r=>{let o={};headers.forEach((h,i)=>o[h]=r[i]);return o;});
-}
-function appendObject_(sh,headers,obj){sh.appendRow(headers.map(h=>obj[h]===undefined?"":obj[h]));}
-function sheet_(name){
- const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
- let sh=ss.getSheetByName(name);
- if(!sh){sh=ss.insertSheet(name);sh.appendRow(SHEETS[name]);}
- return sh;
-}
-function json_(o){return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);}
