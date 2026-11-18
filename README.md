@@ -1,17 +1,64 @@
-# 🎓 A.Hermanto LMS — Panduan Lengkap & Arsitektur Sistem
+# 🎓 EduSmart LMS — Panduan Lengkap & Arsitektur Sistem
 
 > **Sistem Manajemen Pembelajaran Digital Sekolah (LMS)** yang modern, ringan, interaktif, dan **100% Serverless** — memanfaatkan ekosistem **Google Apps Script** dan **Google Spreadsheet** sebagai basis data terpadu tanpa biaya sewa server bulanan.
 
 ---
 
 ## 📌 Daftar Isi
-1. [Sekilas Tentang LMS](#-sekilas-tentang-lms)
-2. [Stack Teknologi yang Digunakan](#-stack-teknologi-yang-digunakan)
-3. [Struktur File Proyek](#-struktur-file-proyek)
-4. [Skema 6 Tabel Basis Data (Google Sheets)](#-skema-6-tabel-basis-data-google-sheets)
-5. [Panduan Langkah Demi Langkah (Step-by-Step)](#-panduan-langkah-demi-langkah-step-by-step)
-6. [Panduan Penggunaan Berdasarkan Peran](#-panduan-penggunaan-berdasarkan-peran)
-7. [Tips & Troubleshooting untuk Guru](#-tips--troubleshooting-untuk-guru)
+1. [🚀 Cara Deploy Online Gratis: GitHub & Vercel](#-cara-deploy-online-gratis-github--vercel)
+2. [💡 Sekilas Tentang LMS](#-sekilas-tentang-lms)
+3. [🖼️ Infografis & Arsitektur Stack](#-infografis--arsitektur-stack)
+4. [🛠️ Stack Teknologi yang Digunakan](#-stack-teknologi-yang-digunakan)
+5. [📂 Struktur File Proyek](#-struktur-file-proyek)
+6. [📊 Skema 6 Tabel Basis Data (Google Sheets)](#-skema-6-tabel-basis-data-google-sheets)
+7. [⚙️ Panduan Menghubungkan Backend (Google Apps Script)](#-panduan-menghubungkan-backend-google-apps-script)
+8. [👥 Panduan Penggunaan Berdasarkan Peran](#-panduan-penggunaan-berdasarkan-peran)
+9. [💡 Tips & Troubleshooting untuk Guru](#-tips--troubleshooting-untuk-guru)
+
+---
+
+## 🚀 Cara Deploy Online Gratis: GitHub & Vercel
+
+Agar aplikasi LMS ini dapat diakses secara online oleh guru dan siswa dari rumah atau sekolah melalui tautan web resmi (contoh: `https://lms-sekolah.vercel.app`), Anda dapat mengunggahnya ke **GitHub** dan menghubungkannya ke **Vercel** secara **100% Gratis dan Tanpa Kartu Kredit**.
+
+### 1. Membuat Repositori di GitHub (Create GitHub Repository)
+1. Buka situs [github.com](https://github.com) dan masuk (*Sign In*) ke akun Anda. Jika belum memiliki akun, daftar gratis melalui tombol *Sign Up*.
+2. Klik ikon tambah (**+**) di pojok kanan atas, lalu pilih **New repository**.
+3. Isi informasi repositori:
+   - **Repository name:** `lms-sekolah` (atau nama lain sesuai nama sekolah Anda).
+   - **Visibility:** Pilih **Public** (wajib untuk hosting gratis Vercel tanpa konfigurasi rumit).
+   - Biarkan opsi *"Add a README file"* **tidak dicentang** (karena kita sudah memiliki file lokal).
+4. Klik tombol hijau **Create repository**.
+5. Buka Terminal / Git Bash di folder proyek komputer Anda (`LMS_Gurus`), lalu jalankan perintah berikut secara berurutan:
+   ```bash
+   git init
+   git add .
+   git commit -m "feat: inisialisasi awal LMS sekolah"
+   git branch -M main
+   git remote add origin https://github.com/USERNAME_ANDA/lms-sekolah.git
+   git push -u origin main
+   ```
+   *(Ganti `USERNAME_ANDA` dengan username GitHub Anda. Seluruh file seperti `index.html`, `styles.css`, `app.js`, `Code.gs`, dan `architecture-stack.svg` kini telah tersimpan di cloud GitHub).*
+
+---
+
+### 2. Publikasi Web Gratis di Vercel (Create Vercel Project)
+1. Kunjungi situs [vercel.com](https://vercel.com).
+2. Klik **Sign Up** atau **Log In**, lalu pilih opsi **Continue with GitHub**. Berikan izin otorisasi saat diminta.
+3. Di halaman Dashboard Vercel, klik tombol **Add New...** di kanan atas > pilih **Project**.
+4. Pada bagian *"Import Git Repository"*, Anda akan melihat repositori `lms-sekolah` yang baru saja dibuat. Klik tombol **Import** di samping nama repositori tersebut.
+5. Pada menu konfigurasi (*Configure Project*):
+   - **Project Name:** Biarkan nama default (misal: `lms-sekolah`).
+   - **Framework Preset:** Pilih opsi **Other**.
+   - **Root Directory:** `./` (default).
+   - *Build and Output Settings:* Tidak perlu diubah karena proyek ini murni HTML5, CSS, dan JS statis.
+6. Klik tombol biru **Deploy**.
+7. Tunggu sekitar 20-30 detik hingga proses deployment selesai dan muncul animasi konfeti 🎉 *"Congratulations!"*.
+8. Klik tombol **Visit** atau klik tautan domain yang diberikan Vercel (misal: `https://lms-sekolah.vercel.app`).
+9. **Selesai!** LMS Anda kini sudah aktif di internet dengan protokol aman HTTPS (SSL gratis) dan siap dibagikan ke siswa maupun guru.
+
+> **Keunggulan CI/CD Otomatis Vercel:**  
+> Setiap kali Anda melakukan perubahan kode di komputer dan menjalankan `git push`, Vercel akan **secara otomatis memperbarui situs web dalam hitungan detik** tanpa perlu upload manual lagi!
 
 ---
 
@@ -25,6 +72,12 @@ LMS dirancang khusus untuk kebutuhan sekolah dan guru. Platform ini menyelesaika
 - **Responsif di Semua Gawai:** Siswa dapat belajar dan ujian dari HP Android/iPhone, tablet, maupun komputer laboratorium sekolah.
 
 ---
+
+## 🖼️ Infografis & Arsitektur Stack
+
+Berikut adalah gambaran visual alur kerja sistem dari perangkat pengguna hingga penyimpanan data di Google Workspace:
+
+![Arsitektur Tech Stack EduSmart LMS](architecture-stack.svg)
 
 ### 🔄 Diagram Alur Kerja Sistem (Mermaid Flowchart)
 
@@ -126,7 +179,7 @@ Ketika fungsi `setupDatabase()` pada `Code.gs` dijalankan, Google Spreadsheet ak
 
 ---
 
-## 🚀 Panduan Langkah Demi Langkah (Step-by-Step)
+## ⚙️ Panduan Menghubungkan Backend (Google Apps Script)
 
 Bagi Guru atau Staf IT Sekolah yang ingin mengaktifkan LMS ini dari awal, ikuti 5 langkah mudah berikut:
 
