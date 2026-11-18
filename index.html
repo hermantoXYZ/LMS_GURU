@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EduSpace LMS</title>
+<style>
+:root{--bg:#f5f7fb;--surface:#fff;--ink:#172033;--muted:#718096;--primary:#2563eb;--line:#e6eaf1}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:var(--primary);color:white;font-weight:600}
+button.secondary{background:#eaf0ff;color:#234caa}button.danger{background:#fee2e2;color:#991b1b}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff;color:var(--ink)}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}.login-card{width:min(420px,100%);background:white;border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:0 20px 60px #15264a12}
+.login-card h1{margin:0 0 8px}.login-card p{color:var(--muted)}.field{margin:15px 0}.field label{display:block;font-size:13px;font-weight:650;margin-bottom:7px}
+.app{display:none;min-height:100vh}.sidebar{width:250px;background:#111827;color:#fff;position:fixed;inset:0 auto 0 0;padding:22px 16px;display:flex;flex-direction:column}
+.brand{font-size:20px;font-weight:800;padding:8px 12px 25px}.nav-label{font-size:11px;color:#9ca3af;padding:12px}.nav button{display:block;width:100%;text-align:left;background:transparent;color:#d1d5db;padding:12px;border-radius:10px;margin:3px 0;font-weight:500}.nav button.active,.nav button:hover{background:#273449;color:#fff}.side-bottom{margin-top:auto;color:#9ca3af;font-size:12px;padding:12px}
+main{margin-left:250px;padding:28px;max-width:1500px}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;gap:15px}.topbar h1{margin:0;font-size:26px}.topbar p{margin:5px 0;color:var(--muted)}.user{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:16px}.card,.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}.card small{color:var(--muted)}.card h2{margin:12px 0 4px;font-size:27px}.panel{margin-top:20px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.panel-head h2{margin:0;font-size:18px}
+.view{display:none}.view.active{display:block}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:600px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);font-size:14px}th{color:var(--muted);font-size:12px} .pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eaf0ff;color:#244ea7;font-size:12px}
+.empty{color:var(--muted);padding:25px;text-align:center}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.modal{position:fixed;inset:0;background:#0b122080;display:none;place-items:center;padding:20px;z-index:5}.modal.open{display:grid}.modal-box{background:white;width:min(520px,100%);border-radius:18px;padding:22px}.modal-box h2{margin-top:0}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.toast{position:fixed;right:20px;bottom:20px;background:#172033;color:white;padding:12px 16px;border-radius:12px;display:none;z-index:10}
+@media(max-width:900px){.sidebar{width:210px}main{margin-left:210px;padding:20px}.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.sidebar{position:static;width:auto;height:auto;padding:12px}.brand{padding:8px}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;width:auto}.side-bottom{display:none}main{margin:0;padding:16px}.topbar{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<section class="login" id="loginScreen">
+  <div class="login-card"><div style="font-size:13px;color:#2563eb;font-weight:800">EDUSPACE LMS</div><h1>Selamat datang</h1><p>Masuk ke ruang pembelajaran Anda.</p>
+    <form id="loginForm"><div class="field"><label>Username</label><input id="username" required placeholder="Masukkan username" autocomplete="username"></div><div class="field"><label>Password</label><input id="password" type="password" required placeholder="Masukkan password" autocomplete="current-password"></div><button style="width:100%">Masuk</button></form>
+    <p style="font-size:12px;margin-top:18px">Demo lokal: username <b>admin</b>, password <b>admin123</b>. Ganti sebelum digunakan sungguhan.</p>
+  </div>
+</section>
+<div class="app" id="app">
+<aside class="sidebar"><div class="brand">✦ EduSpace</div><div class="nav-label">MENU UTAMA</div><nav class="nav" id="nav">
+<button class="active" data-view="dashboard">▦ Dashboard</button><button data-view="users">♙ Pengguna</button><button data-view="classes">▣ Kelas</button><button data-view="materials">▤ Materi</button><button data-view="assignments">✎ Tugas</button><button data-view="quizzes">◉ Quiz</button><button data-view="grades">▤ Nilai</button><button data-view="announcements">◈ Pengumuman</button>
+</nav><div class="side-bottom">Learning management workspace</div></aside>
+<main>
+<div class="topbar"><div><h1 id="pageTitle">Dashboard</h1><p>Ringkasan ruang pembelajaran</p></div><div class="user"><span id="userLabel">Admin</span> · <button class="secondary" id="logout" style="padding:7px 10px">Keluar</button></div></div>
+<section class="view active" id="view-dashboard">
+<div class="cards"><div class="card"><small>Pengguna</small><h2 id="countUsers">0</h2><small>Terdaftar</small></div><div class="card"><small>Kelas</small><h2 id="countClasses">0</h2><small>Ruang belajar</small></div><div class="card"><small>Materi</small><h2 id="countMaterials">0</h2><small>Materi tersedia</small></div><div class="card"><small>Tugas</small><h2 id="countAssignments">0</h2><small>Aktivitas tugas</small></div></div>
+<div class="panel"><div class="panel-head"><h2>Aktivitas terbaru</h2></div><div id="recent" class="empty">Belum ada aktivitas. Mulai dengan menambahkan kelas atau materi.</div></div>
+</section>
+<section class="view" id="view-users"><div class="panel"><div class="panel-head"><h2>Pengguna</h2><button onclick="openModal('user')">+ Tambah pengguna</button></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Username</th><th>Role</th></tr></thead><tbody id="userRows"></tbody></table></div></div></section>
+<section class="view" id="view-classes"><div class="panel"><div class="panel-head"><h2>Daftar kelas</h2><button onclick="openModal('class')">+ Buat kelas</button></div><div id="classList" class="grid2"></div></div></section>
+<section class="view" id="view-materials"><div class="panel"><div class="panel-head"><h2>Materi pembelajaran</h2><button onclick="openModal('material')">+ Tambah materi</button></div><div class="table-wrap"><table><thead><tr><th>Materi</th><th>Kelas</th><th>Deskripsi</th></tr></thead><tbody id="materialRows"></tbody></table></div></div></section>
+<section class="view" id="view-assignments"><div class="panel"><div class="panel-head"><h2>Daftar tugas</h2><button onclick="openModal('assignment')">+ Buat tugas</button></div><div id="assignmentList"></div></div></section>
+<section class="view" id="view-quizzes"><div class="panel"><div class="panel-head"><h2>Quiz</h2><button onclick="openModal('quiz')">+ Buat quiz</button></div><div id="quizList"></div></div></section>
+<section class="view" id="view-grades"><div class="panel"><div class="panel-head"><h2>Rekap nilai</h2></div><div class="empty">Modul penilaian akan dikembangkan pada tahap berikutnya.</div></div></section>
+<section class="view" id="view-announcements"><div class="panel"><div class="panel-head"><h2>Pengumuman</h2><button onclick="openModal('announcement')">+ Buat pengumuman</button></div><div id="announcementList"></div></div></section>
+</main></div>
+<div class="modal" id="modal"><div class="modal-box"><h2 id="modalTitle">Tambah</h2><form id="modalForm"></form><div class="modal-actions"><button class="secondary" onclick="closeModal()">Batal</button><button id="saveModal">Simpan</button></div></div></div><div class="toast" id="toast"></div>
+<script>
+/* Set GAS_ENDPOINT when deploying backend. Empty value uses local demo data. */
+const GAS_ENDPOINT = "";
+let currentUser=null, mode="demo", formType="";
+const data={users:[{name:"Administrator",username:"admin",role:"Admin"}],classes:[],materials:[],assignments:[],quizzes:[],announcements:[]};
+const $=id=>document.getElementById(id);
+function toast(msg){$("toast").textContent=msg;$("toast").style.display="block";setTimeout(()=> $("toast").style.display="none",2500)}
+function saveLocal(){localStorage.setItem("eduspace_demo",JSON.stringify(data))}
+function loadLocal(){let s=localStorage.getItem("eduspace_demo");if(s){Object.assign(data,JSON.parse(s))}}
+async function api(action,payload={}){if(!GAS_ENDPOINT)return null;const r=await fetch(GAS_ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,...payload})});return r.json()}
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();let u=$("username").value.trim(),p=$("password").value;let result=await api("login",{username:u,password:p});if(result&&result.ok){currentUser=result.user;mode="api"}else if(!GAS_ENDPOINT&&u==="admin"&&p==="admin123"){currentUser={name:"Administrator",username:"admin",role:"Admin"};mode="demo"}else{toast(result?.message||"Login gagal. Periksa akun.");return}enterApp()});
+function enterApp(){$("loginScreen").style.display="none";$("app").style.display="flex";$("userLabel").textContent=currentUser.name+" ("+currentUser.role+")";render()}
+$("logout").onclick=()=>{currentUser=null;$("app").style.display="none";$("loginScreen").style.display="grid";$("password").value=""};
+$("nav").addEventListener("click",e=>{let b=e.target.closest("button[data-view]");if(!b)return;document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));$("view-"+b.dataset.view).classList.add("active");$("pageTitle").textContent=b.textContent.replace(/[▦♙▣▤✎◉◈]/g,"").trim()});
+function render(){loadLocal();$("countUsers").textContent=data.users.length;$("countClasses").textContent=data.classes.length;$("countMaterials").textContent=data.materials.length;$("countAssignments").textContent=data.assignments.length;
+$("userRows").innerHTML=data.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.username)}</td><td><span class="pill">${esc(u.role)}</span></td></tr>`).join("");
+$("classList").innerHTML=data.classes.map(c=>`<div class="card"><h3>${esc(c.name)}</h3><small>${esc(c.description||"Kelas pembelajaran")}</small></div>`).join("")||'<div class="empty">Belum ada kelas.</div>';
+$("materialRows").innerHTML=data.materials.map(m=>`<tr><td>${esc(m.title)}</td><td>${esc(m.className||"-")}</td><td>${esc(m.description||"-")}</td></tr>`).join("")||'<tr><td colspan="3" class="empty">Belum ada materi.</td></tr>';
+$("assignmentList").innerHTML=data.assignments.map(a=>`<div class="card" style="margin:10px 0"><h3>${esc(a.title)}</h3><p>${esc(a.description||"")}</p><small>${esc(a.className||"")} ${a.deadline? " · "+esc(a.deadline):""}</small></div>`).join("")||'<div class="empty">Belum ada tugas.</div>';
+$("quizList").innerHTML=data.quizzes.map(q=>`<div class="card" style="margin:10px 0"><h3>${esc(q.title)}</h3><small>${esc(q.className||"")}</small></div>`).join("")||'<div class="empty">Belum ada quiz.</div>';
+$("announcementList").innerHTML=data.announcements.map(a=>`<div class="card" style="margin:10px 0"><h3>${esc(a.title)}</h3><p>${esc(a.body)}</p></div>`).join("")||'<div class="empty">Belum ada pengumuman.</div>';
+}
+function esc(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function openModal(type){formType=type;$("modal").classList.add("open");const configs={user:["Tambah Pengguna",[['name','Nama lengkap'],['username','Username'],['role','Role (Admin/Guru/Siswa)']]],class:["Buat Kelas",[['name','Nama kelas'],['description','Deskripsi']]],material:["Tambah Materi",[['title','Judul materi'],['className','Nama kelas'],['description','Deskripsi atau link materi']]],assignment:["Buat Tugas",[['title','Judul tugas'],['className','Nama kelas'],['deadline','Batas waktu (YYYY-MM-DD)'],['description','Instruksi tugas']]],quiz:["Buat Quiz",[['title','Judul quiz'],['className','Nama kelas']]],announcement:["Buat Pengumuman",[['title','Judul'],['body','Isi pengumuman']]]};let cfg=configs[type];$("modalTitle").textContent=cfg[0];$("modalForm").innerHTML=cfg[1].map(([k,label])=>`<div class="field"><label>${esc(label)}</label><input name="${k}" ${k==="role"?'placeholder="Admin, Guru, atau Siswa"':""} required></div>`).join("");}
+function closeModal(){$("modal").classList.remove("open")}
+$("saveModal").onclick=async()=>{const f=$("modalForm");if(!f.reportValidity())return;let o=Object.fromEntries(new FormData(f).entries());let action=formType;if(mode==="api"){let r=await api("create_"+action,o);if(!r?.ok){toast(r?.message||"Gagal menyimpan");return}}else{const key={user:"users",class:"classes",material:"materials",assignment:"assignments",quiz:"quizzes",announcement:"announcements"}[formType];data[key].push(o);saveLocal()}closeModal();render();toast("Data tersimpan")};
+loadLocal();
+</script>
+</body>
+</html>
