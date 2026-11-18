@@ -1,4 +1,4 @@
-# 🎓 EduSmart LMS — Panduan Lengkap & Arsitektur Sistem
+# 🎓 A.Hermanto LMS — Panduan Lengkap & Arsitektur Sistem
 
 > **Sistem Manajemen Pembelajaran Digital Sekolah (LMS)** yang modern, ringan, interaktif, dan **100% Serverless** — memanfaatkan ekosistem **Google Apps Script** dan **Google Spreadsheet** sebagai basis data terpadu tanpa biaya sewa server bulanan.
 
@@ -6,32 +6,25 @@
 
 ## 📌 Daftar Isi
 1. [Sekilas Tentang LMS](#-sekilas-tentang-lms)
-2. [Infografis & Arsitektur Stack](#-infografis--arsitektur-stack)
-3. [Stack Teknologi yang Digunakan](#-stack-teknologi-yang-digunakan)
-4. [Struktur File Proyek](#-struktur-file-proyek)
-5. [Skema 6 Tabel Basis Data (Google Sheets)](#-skema-6-tabel-basis-data-google-sheets)
-6. [Panduan Langkah Demi Langkah (Step-by-Step)](#-panduan-langkah-demi-langkah-step-by-step)
-7. [Panduan Penggunaan Berdasarkan Peran](#-panduan-penggunaan-berdasarkan-peran)
-8. [Tips & Troubleshooting untuk Guru](#-tips--troubleshooting-untuk-guru)
+2. [Stack Teknologi yang Digunakan](#-stack-teknologi-yang-digunakan)
+3. [Struktur File Proyek](#-struktur-file-proyek)
+4. [Skema 6 Tabel Basis Data (Google Sheets)](#-skema-6-tabel-basis-data-google-sheets)
+5. [Panduan Langkah Demi Langkah (Step-by-Step)](#-panduan-langkah-demi-langkah-step-by-step)
+6. [Panduan Penggunaan Berdasarkan Peran](#-panduan-penggunaan-berdasarkan-peran)
+7. [Tips & Troubleshooting untuk Guru](#-tips--troubleshooting-untuk-guru)
 
 ---
 
 ## 💡 Sekilas Tentang LMS
 
-EduSmart LMS dirancang khusus untuk kebutuhan sekolah dan guru di Indonesia. Platform ini menyelesaikan tantangan umum pembelajaran digital:
+LMS dirancang khusus untuk kebutuhan sekolah dan guru. Platform ini menyelesaikan tantangan umum pembelajaran digital:
 - **Nol Biaya Server:** Tidak memerlukan langganan VPS, cPanel, atau hosting berbayar.
 - **Data Milik Penuh Sekolah:** Semua data siswa, materi, dan nilai tersimpan aman di akun Google Drive sekolah.
-- **CBT Otomatis & Esai:** Soal Pilihan Ganda dikoreksi langsung oleh sistem dalam hitungan detik, sementara soal esai dapat dinilai subjektif oleh guru dilengkapi catatan apresiasi.
+- **CBT Otomatis & Esai:** Soal Pilihan Ganda dikoreksi langsung oleh sistem.
 - **Streaming Video Lancar:** Memanfaatkan integrasi YouTube sehingga video pembelajaran tidak membebani kapasitas hosting atau kuota server lokal.
 - **Responsif di Semua Gawai:** Siswa dapat belajar dan ujian dari HP Android/iPhone, tablet, maupun komputer laboratorium sekolah.
 
 ---
-
-## 🖼️ Infografis & Arsitektur Stack
-
-Berikut adalah gambaran visual alur kerja sistem dari perangkat pengguna hingga penyimpanan data di Google Workspace:
-
-![Arsitektur Tech Stack EduSmart LMS](architecture-stack.svg)
 
 ### 🔄 Diagram Alur Kerja Sistem (Mermaid Flowchart)
 
@@ -222,4 +215,3 @@ Jika saat login atau menyimpan materi muncul pesan gagal terhubung:
 ---
 
 **Dikembangkan dengan ❤️ untuk kemajuan pendidikan digital sekolah.**  
-*EduSmart LMS — Cepat, Praktis, Tanpa Biaya Server.*
